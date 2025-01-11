@@ -1,12 +1,10 @@
 import React,{useState, useEffect} from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import './App.css';
+import TodoForm from './TodoForm';
+import TodoList from './TodoList';
 import axios from 'axios';
-import Register from './components/Register';
-import Login from './components/Login';
-import TodoPage from './components/TodoPage';
 
-function App() {
+function TodoPage() {
   const [todo,setTodo] = useState([]);
   const [donetask, setDoneTask] = useState([]);
   
@@ -17,9 +15,13 @@ function App() {
 
   const fetchTodo = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/todo');
-      //console.log(response.data);
-      setTodo(response.data)
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        const response = await axios.get('http://localhost:4000/api/todo');
+        //console.log(response.data);
+        setTodo(response.data)
+      }
     } catch (error) {
       console.error('Error fetching todos:', error);
     }
@@ -49,15 +51,22 @@ function App() {
       <header className="app-header">
         <h1>Todo Application</h1>
       </header>
-      <Router>
-      <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Login />} />
-        <Route path='/todo' element={<TodoPage />} />
-      </Routes>
-    </Router>
+      <div className="todo-container">
+        <section className="todo-section">
+          <h2>Add New Task</h2>
+          <TodoForm todoList={todo} setTodo={setTodo} />
+        </section>
+        <section className="todo-section">
+          <h2>Pending Tasks</h2>
+          <TodoList todoList={todo} markDone={markDone} />
+        </section>
+        <section className="todo-section">
+          <h2>Completed Tasks</h2>
+          <TodoList todoList={donetask} />
+        </section>
+      </div>
     </div>
   );
 }
 
-export default App;
+export default TodoPage;
